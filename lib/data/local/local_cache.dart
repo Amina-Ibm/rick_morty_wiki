@@ -4,4 +4,6 @@ abstract class LocalCache {
   
   Future<void> saveCharacter(int id, Map<String, dynamic> json);
   Future<Map<String, dynamic>?> getCharacter(int id);
+
+  Future<List<Map<String, dynamic>>> getAllCachedCharacters();
 }

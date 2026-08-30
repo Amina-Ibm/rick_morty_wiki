@@ -3,10 +3,10 @@ import '../models/character.dart';
 import '../models/paginated_list.dart';
 
 abstract class CharacterRepository {
-  /// Fetches a paginated list of characters, optionally filtered by name.
-  /// Returns an empty list if search yields no results (404 handled gracefully).
-  Future<Result<PaginatedList<Character>>> getCharacters({int page = 1, String? name});
-  
-  /// Fetches details for a single character by id.
+  Future<Result<PaginatedList<Character>>> getCharacters({
+    int page = 1,
+    String? name,
+  });
+
   Future<Result<Character>> getCharacter(int id);
 }

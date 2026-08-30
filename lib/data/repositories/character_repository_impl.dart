@@ -42,7 +42,8 @@ class CharacterRepositoryImpl implements CharacterRepository {
       final characters = dto.results.map((c) => Character.fromDto(c)).toList();
       final hasMore = dto.next != null;
 
-      // Save raw JSON to cache
+      // Save raw JSON to cache with timestamp
+      data['_cached_at'] = DateTime.now().toIso8601String();
       await _cache.saveCharactersPage(page, name, data);
 
       return Success(PaginatedList(
@@ -68,11 +69,34 @@ class CharacterRepositoryImpl implements CharacterRepository {
               (json) => CharacterDto.fromJson(json)
             );
             final characters = dto.results.map((c) => Character.fromDto(c)).toList();
+            
+            DateTime? cachedAt;
+            if (cachedData['_cached_at'] != null) {
+              cachedAt = DateTime.tryParse(cachedData['_cached_at'] as String);
+            }
+
             return Success(PaginatedList(
               items: characters, 
               hasMore: dto.next != null,
               isFromCache: true, // Flag as cached data
+              cachedAt: cachedAt,
             ));
+          } else if (name != null && name.isNotEmpty) {
+            final allCharsData = await _cache.getAllCachedCharacters();
+            final matchedChars = allCharsData.where((c) {
+              final charName = (c['name'] as String?)?.toLowerCase() ?? '';
+              return charName.contains(name.toLowerCase());
+            }).map((c) => Character.fromDto(CharacterDto.fromJson(c))).toList();
+
+            if (page == 1) {
+              return Success(PaginatedList(
+                items: matchedChars,
+                hasMore: false,
+                isFromCache: true,
+              ));
+            } else {
+              return const Success(PaginatedList(items: [], hasMore: false, isFromCache: true));
+            }
           }
         } catch (cacheError) {
           return const Failure(ParseFailure('Failed to parse cached data'));

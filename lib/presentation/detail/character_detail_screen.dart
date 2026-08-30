@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sizer/sizer.dart';
+
 import '../../domain/models/character.dart';
-import '../theme/app_theme.dart';
 import '../favourites/favourites_notifier.dart';
+import '../theme/app_theme.dart';
 
 class CharacterDetailScreen extends ConsumerWidget {
   final Character character;
@@ -12,7 +13,9 @@ class CharacterDetailScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isFav = ref.watch(favouritesNotifierProvider).value?.contains(character.id) ?? false;
+    final isFav =
+        ref.watch(favouritesNotifierProvider).value?.contains(character.id) ??
+        false;
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -27,9 +30,11 @@ class CharacterDetailScreen extends ConsumerWidget {
               size: 24.sp,
             ),
             onPressed: () {
-              ref.read(favouritesNotifierProvider.notifier).toggleFavourite(character.id);
+              ref
+                  .read(favouritesNotifierProvider.notifier)
+                  .toggleFavourite(character.id);
             },
-          )
+          ),
         ],
       ),
       body: SingleChildScrollView(
@@ -42,7 +47,7 @@ class CharacterDetailScreen extends ConsumerWidget {
                 character.imageUrl,
                 height: 50.h,
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => Container(
+                errorBuilder: (_, _, _) => Container(
                   height: 50.h,
                   color: Colors.grey,
                   child: const Icon(Icons.broken_image, size: 100),
@@ -73,8 +78,8 @@ class CharacterDetailScreen extends ConsumerWidget {
                           color: character.status == CharacterStatus.alive
                               ? Colors.green
                               : character.status == CharacterStatus.dead
-                                  ? Colors.red
-                                  : Colors.grey,
+                              ? Colors.red
+                              : Colors.grey,
                         ),
                       ),
                       SizedBox(width: 2.w),
@@ -88,7 +93,47 @@ class CharacterDetailScreen extends ConsumerWidget {
                     ],
                   ),
                   SizedBox(height: 3.h),
-                  // Add more details here (e.g. Origin, Location) as needed
+                  Text(
+                    'Location:',
+                    style: TextStyle(
+                      fontSize: 16.sp,
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.creamText,
+                    ),
+                  ),
+                  SizedBox(height: 1.h),
+                  Text(
+                    character.location,
+                    style: TextStyle(fontSize: 14.sp, color: Colors.white70),
+                  ),
+                  SizedBox(height: 3.h),
+                  Text(
+                    'Origin:',
+                    style: TextStyle(
+                      fontSize: 16.sp,
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.creamText,
+                    ),
+                  ),
+                  SizedBox(height: 1.h),
+                  Text(
+                    character.origin.name,
+                    style: TextStyle(fontSize: 14.sp, color: Colors.white70),
+                  ),
+                  SizedBox(height: 3.h),
+                  Text(
+                    'URL:',
+                    style: TextStyle(
+                      fontSize: 16.sp,
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.creamText,
+                    ),
+                  ),
+                  SizedBox(height: 1.h),
+                  Text(
+                    character.origin.url,
+                    style: TextStyle(fontSize: 14.sp, color: Colors.white70),
+                  ),
                 ],
               ),
             ),

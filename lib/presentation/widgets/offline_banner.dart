@@ -3,7 +3,18 @@ import 'package:sizer/sizer.dart';
 import '../theme/app_theme.dart';
 
 class OfflineBanner extends StatelessWidget {
-  const OfflineBanner({super.key});
+  final DateTime? cachedAt;
+
+  const OfflineBanner({super.key, this.cachedAt});
+
+  String _getTimeAgo() {
+    if (cachedAt == null) return 'Offline — showing cached data';
+    final diff = DateTime.now().difference(cachedAt!);
+    if (diff.inMinutes < 1) return 'Offline — showing data from just now';
+    if (diff.inHours < 1) return 'Offline — showing data from ${diff.inMinutes} minutes ago';
+    if (diff.inDays < 1) return 'Offline — showing data from ${diff.inHours} hours ago';
+    return 'Offline — showing data from ${diff.inDays} days ago';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -12,7 +23,7 @@ class OfflineBanner extends StatelessWidget {
       color: Colors.orange.shade800,
       padding: EdgeInsets.symmetric(vertical: 1.h, horizontal: 4.w),
       child: Text(
-        'Offline — showing cached data',
+        _getTimeAgo(),
         style: TextStyle(
           color: AppTheme.creamText,
           fontSize: 12.sp,

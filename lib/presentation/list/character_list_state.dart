@@ -7,6 +7,7 @@ class CharacterListState {
   final bool isLoadingMore;
   final bool isFromCache;
   final String query;
+  final DateTime? cachedAt;
 
   const CharacterListState({
     required this.characters,
@@ -14,6 +15,7 @@ class CharacterListState {
     required this.isLoadingMore,
     required this.isFromCache,
     required this.query,
+    this.cachedAt,
   });
 
   CharacterListState copyWith({
@@ -22,6 +24,7 @@ class CharacterListState {
     bool? isLoadingMore,
     bool? isFromCache,
     String? query,
+    DateTime? cachedAt,
   }) {
     return CharacterListState(
       characters: characters ?? this.characters,
@@ -29,6 +32,7 @@ class CharacterListState {
       isLoadingMore: isLoadingMore ?? this.isLoadingMore,
       isFromCache: isFromCache ?? this.isFromCache,
       query: query ?? this.query,
+      cachedAt: cachedAt ?? this.cachedAt,
     );
   }
 }

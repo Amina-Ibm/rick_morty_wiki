@@ -56,6 +56,7 @@ class CharacterListNotifier extends AsyncNotifier<CharacterListState> {
           isLoadingMore: false,
           isFromCache: data.isFromCache,
           query: _currentQuery,
+          cachedAt: data.cachedAt,
         ),
       );
     }
@@ -75,6 +76,7 @@ class CharacterListNotifier extends AsyncNotifier<CharacterListState> {
         isLoadingMore: false,
         isFromCache: data.isFromCache,
         query: _currentQuery,
+        cachedAt: data.cachedAt,
       );
     } else {
       throw (result as Failure).error;
@@ -134,6 +136,7 @@ class CharacterListNotifier extends AsyncNotifier<CharacterListState> {
           hasMore: data.hasMore,
           isLoadingMore: false,
           isFromCache: data.isFromCache,
+          cachedAt: data.cachedAt,
         ),
       );
     } else {

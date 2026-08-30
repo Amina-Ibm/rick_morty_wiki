@@ -44,4 +44,30 @@ class HiveLocalCache implements LocalCache {
     }
     return null;
   }
+
+  @override
+  Future<List<Map<String, dynamic>>> getAllCachedCharacters() async {
+    final pageBox = await _openPageBox();
+    final List<Map<String, dynamic>> allCharacters = [];
+    final seenIds = <int>{};
+
+    for (final key in pageBox.keys) {
+      final dataStr = pageBox.get(key);
+      if (dataStr != null) {
+        final data = jsonDecode(dataStr) as Map<String, dynamic>;
+        final results = data['results'] as List<dynamic>?;
+        if (results != null) {
+          for (final item in results) {
+            final charMap = item as Map<String, dynamic>;
+            final id = charMap['id'] as int;
+            if (!seenIds.contains(id)) {
+              seenIds.add(id);
+              allCharacters.add(charMap);
+            }
+          }
+        }
+      }
+    }
+    return allCharacters;
+  }
 }

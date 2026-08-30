@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
+
 import '../../domain/models/character.dart';
 import '../theme/app_theme.dart';
 
@@ -62,10 +63,12 @@ class CharacterCard extends StatelessWidget {
                     SizedBox(height: 0.5.h),
                     Text(
                       '${character.species} - ${character.status.name}',
-                      style: TextStyle(
-                        fontSize: 12.sp,
-                        color: Colors.white70,
-                      ),
+                      style: TextStyle(fontSize: 12.sp, color: Colors.white70),
+                    ),
+                    SizedBox(height: 0.5.h),
+                    Text(
+                      character.gender,
+                      style: TextStyle(fontSize: 12.sp, color: Colors.white70),
                     ),
                   ],
                 ),

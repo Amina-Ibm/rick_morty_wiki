@@ -26,7 +26,7 @@ class CharacterRepositoryImpl implements CharacterRepository {
   @override
   Future<Result<PaginatedList<Character>>> getCharacters({int page = 1, String? name}) async {
     try {
-      final queryParams = {'page': page};
+      final queryParams = <String, dynamic>{'page': page};
       if (name != null && name.isNotEmpty) {
         queryParams['name'] = name;
       }

@@ -1,8 +1,10 @@
 import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../core/di/providers.dart';
 
-class FavouritesNotifier extends AutoDisposeAsyncNotifier<Set<int>> {
+class FavouritesNotifier extends AsyncNotifier<Set<int>> {
   @override
   FutureOr<Set<int>> build() async {
     final store = ref.watch(favouritesStoreProvider);
@@ -22,7 +24,7 @@ class FavouritesNotifier extends AutoDisposeAsyncNotifier<Set<int>> {
 
     // Optimistic UI update
     state = AsyncData(newFavourites);
-    
+
     // Persist to local storage
     try {
       final store = ref.read(favouritesStoreProvider);
@@ -30,7 +32,6 @@ class FavouritesNotifier extends AutoDisposeAsyncNotifier<Set<int>> {
     } catch (e) {
       // If saving fails, revert to previous state
       state = AsyncData(currentFavourites);
-      // Depending on requirements, we could also log this error or show a snackbar
     }
   }
 
@@ -41,5 +42,5 @@ class FavouritesNotifier extends AutoDisposeAsyncNotifier<Set<int>> {
 
 final favouritesNotifierProvider =
     AsyncNotifierProvider.autoDispose<FavouritesNotifier, Set<int>>(
-  () => FavouritesNotifier(),
-);
+      () => FavouritesNotifier(),
+    );

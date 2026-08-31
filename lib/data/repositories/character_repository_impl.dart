@@ -24,11 +24,17 @@ class CharacterRepositoryImpl implements CharacterRepository {
   }
 
   @override
-  Future<Result<PaginatedList<Character>>> getCharacters({int page = 1, String? name}) async {
+  Future<Result<PaginatedList<Character>>> getCharacters({int page = 1, String? name, String? status, String? species}) async {
     try {
       final queryParams = <String, dynamic>{'page': page};
       if (name != null && name.isNotEmpty) {
         queryParams['name'] = name;
+      }
+      if (status != null && status.isNotEmpty) {
+        queryParams['status'] = status;
+      }
+      if (species != null && species.isNotEmpty) {
+        queryParams['species'] = species;
       }
 
       final response = await _apiClient.get('/character', queryParameters: queryParams);
@@ -42,11 +48,13 @@ class CharacterRepositoryImpl implements CharacterRepository {
       final characters = dto.results.map((c) => Character.fromDto(c)).toList();
       final hasMore = dto.next != null;
 
+      final cacheQuery = '${name ?? ''}_${status ?? ''}_${species ?? ''}';
+
       // Save raw JSON to cache with timestamp
       data['_cached_at'] = DateTime.now().toIso8601String();
-      await _cache.saveCharactersPage(page, name, data);
+      await _cache.saveCharactersPage(page, cacheQuery, data);
 
-      return Success(PaginatedList(
+      return Success(PaginatedList<Character>(
         items: characters, 
         hasMore: hasMore,
         isFromCache: false,
@@ -56,13 +64,15 @@ class CharacterRepositoryImpl implements CharacterRepository {
       if (e.response?.statusCode == 404) {
         // API returns 404 when search yields zero results. 
         // We catch this and return an empty list instead of a failure.
-        return const Success(PaginatedList(items: [], hasMore: false));
+        return const Success(PaginatedList<Character>(items: [], hasMore: false));
       }
+
+      final cacheQuery = '${name ?? ''}_${status ?? ''}_${species ?? ''}';
 
       if (_isNetworkError(e)) {
         // Attempt to serve from cache when offline
         try {
-          final cachedData = await _cache.getCharactersPage(page, name);
+          final cachedData = await _cache.getCharactersPage(page, cacheQuery);
           if (cachedData != null) {
             final dto = PaginatedResponseDto<CharacterDto>.fromJson(
               cachedData, 
@@ -75,7 +85,7 @@ class CharacterRepositoryImpl implements CharacterRepository {
               cachedAt = DateTime.tryParse(cachedData['_cached_at'] as String);
             }
 
-            return Success(PaginatedList(
+            return Success(PaginatedList<Character>(
               items: characters, 
               hasMore: dto.next != null,
               isFromCache: true, // Flag as cached data
@@ -89,22 +99,26 @@ class CharacterRepositoryImpl implements CharacterRepository {
             }).map((c) => Character.fromDto(CharacterDto.fromJson(c))).toList();
 
             if (page == 1) {
-              return Success(PaginatedList(
+              return Success(PaginatedList<Character>(
                 items: matchedChars,
                 hasMore: false,
                 isFromCache: true,
               ));
             } else {
-              return const Success(PaginatedList(items: [], hasMore: false, isFromCache: true));
+              return const Success(PaginatedList<Character>(items: [], hasMore: false, isFromCache: true));
             }
           }
         } catch (cacheError) {
+          print('Cache error: $cacheError');
           return const Failure(ParseFailure('Failed to parse cached data'));
         }
         return const Failure(NetworkFailure());
       }
+      print('Server error: ${e.response?.statusCode} ${e.message}');
       return Failure(ServerFailure(e.message ?? 'Server error'));
-    } catch (e) {
+    } catch (e, stacktrace) {
+      print('Unknown error: $e');
+      print(stacktrace);
       return const Failure(ParseFailure());
     }
   }

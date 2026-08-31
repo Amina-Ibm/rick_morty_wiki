@@ -13,6 +13,8 @@ import 'character_list_state.dart';
 class CharacterListNotifier extends AsyncNotifier<CharacterListState> {
   int _page = 1;
   String _currentQuery = '';
+  String? _currentStatus;
+  String? _currentSpecies;
   Timer? _debounceTimer;
   int _fetchId = 0;
 
@@ -42,7 +44,12 @@ class CharacterListNotifier extends AsyncNotifier<CharacterListState> {
     final currentFetchId = _fetchId;
 
     final repo = ref.read(characterRepositoryProvider);
-    final result = await repo.getCharacters(page: 1, name: _currentQuery);
+    final result = await repo.getCharacters(
+      page: 1,
+      name: _currentQuery,
+      status: _currentStatus,
+      species: _currentSpecies,
+    );
 
     if (currentFetchId != _fetchId) return;
 
@@ -56,6 +63,8 @@ class CharacterListNotifier extends AsyncNotifier<CharacterListState> {
           isLoadingMore: false,
           isFromCache: data.isFromCache,
           query: _currentQuery,
+          status: _currentStatus,
+          species: _currentSpecies,
           cachedAt: data.cachedAt,
         ),
       );
@@ -65,8 +74,15 @@ class CharacterListNotifier extends AsyncNotifier<CharacterListState> {
   Future<CharacterListState> _fetchInitial() async {
     _page = 1;
     final repo = ref.watch(characterRepositoryProvider);
-    final result = await repo.getCharacters(page: _page, name: _currentQuery);
-    print(result.toString());
+    final result = await repo.getCharacters(
+      page: _page,
+      name: _currentQuery,
+      status: _currentStatus,
+      species: _currentSpecies,
+    );
+    if (result case Failure(:final error)) {
+      print('REAL ERROR: $error');
+    }
 
     if (result is Success<PaginatedList<Character>>) {
       final data = result.data;
@@ -76,6 +92,8 @@ class CharacterListNotifier extends AsyncNotifier<CharacterListState> {
         isLoadingMore: false,
         isFromCache: data.isFromCache,
         query: _currentQuery,
+        status: _currentStatus,
+        species: _currentSpecies,
         cachedAt: data.cachedAt,
       );
     } else {
@@ -90,6 +108,8 @@ class CharacterListNotifier extends AsyncNotifier<CharacterListState> {
 
     _debounceTimer = Timer(const Duration(milliseconds: 500), () {
       _currentQuery = query;
+      _currentStatus = null;
+      _currentSpecies = null;
       _fetchId++;
       final currentFetchId = _fetchId;
 
@@ -104,6 +124,25 @@ class CharacterListNotifier extends AsyncNotifier<CharacterListState> {
               state = AsyncError(error, stackTrace);
           });
     });
+  }
+
+  void onFilterChanged({String? status, String? species}) {
+    _currentStatus = status;
+    _currentSpecies = species;
+
+    _debounceTimer?.cancel();
+    _fetchId++;
+    final currentFetchId = _fetchId;
+
+    state = const AsyncLoading();
+
+    _fetchInitial()
+        .then((newState) {
+          if (currentFetchId == _fetchId) state = AsyncData(newState);
+        })
+        .catchError((error, stackTrace) {
+          if (currentFetchId == _fetchId) state = AsyncError(error, stackTrace);
+        });
   }
 
   Future<void> loadMore() async {
@@ -123,6 +162,8 @@ class CharacterListNotifier extends AsyncNotifier<CharacterListState> {
     final result = await repo.getCharacters(
       page: nextPage,
       name: _currentQuery,
+      status: _currentStatus,
+      species: _currentSpecies,
     );
 
     if (currentFetchId != _fetchId) return;
@@ -148,6 +189,8 @@ class CharacterListNotifier extends AsyncNotifier<CharacterListState> {
     _debounceTimer?.cancel();
     _fetchId++;
     _currentQuery = '';
+    _currentStatus = null;
+    _currentSpecies = null;
 
     state = const AsyncLoading();
     state = await AsyncValue.guard(() => _fetchInitial());

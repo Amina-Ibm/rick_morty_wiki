@@ -11,22 +11,29 @@ import 'presentation/theme/app_theme.dart';
 // Note: You must call await Hive.initFlutter(); before runApp in production.
 // Skipping here to let it be handled later or in a wrapper.
 
+import 'presentation/theme/theme_provider.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Hive.initFlutter();
+  await Hive.openBox('themeBox');
   runApp(const ProviderScope(child: MyApp()));
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends ConsumerWidget {
   const MyApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final themeMode = ref.watch(themeProvider);
+
     return Sizer(
       builder: (context, orientation, deviceType) {
         return MaterialApp(
           title: 'Rick & Morty Explorer',
-          theme: AppTheme.darkTheme,
+          themeMode: themeMode,
+          theme: AppTheme.lightTheme,
+          darkTheme: AppTheme.darkTheme,
           debugShowCheckedModeBanner: false,
           home: const MainScreen(),
         );

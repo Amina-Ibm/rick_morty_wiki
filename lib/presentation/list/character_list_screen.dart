@@ -1,9 +1,11 @@
+import 'package:choice/choice.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sizer/sizer.dart';
 
 import '../detail/character_detail_screen.dart';
 import '../favourites/favourites_notifier.dart';
+import '../theme/theme_provider.dart';
 import '../widgets/character_card.dart';
 import '../widgets/offline_banner.dart';
 import 'character_list_notifier.dart';
@@ -19,6 +21,9 @@ class CharacterListScreen extends ConsumerStatefulWidget {
 class _CharacterListScreenState extends ConsumerState<CharacterListScreen> {
   final ScrollController _scrollController = ScrollController();
   final TextEditingController _searchController = TextEditingController();
+
+  final List<String> statusOptions = ['alive', 'dead'];
+  final List<String> speciesOptions = ['human', 'alien'];
 
   @override
   void initState() {
@@ -43,33 +48,145 @@ class _CharacterListScreenState extends ConsumerState<CharacterListScreen> {
   @override
   Widget build(BuildContext context) {
     final stateAsync = ref.watch(characterListNotifierProvider);
+    final currentStatus = stateAsync.value?.status;
+    final currentSpecies = stateAsync.value?.species;
+    final themeMode = ref.watch(themeProvider);
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Rick & Morty'),
+        actions: [
+          IconButton(
+            icon: Icon(
+              themeMode == ThemeMode.dark ? Icons.light_mode : Icons.dark_mode,
+            ),
+            onPressed: () {
+              ref.read(themeProvider.notifier).toggleTheme();
+            },
+          ),
+        ],
         bottom: PreferredSize(
-          preferredSize: Size.fromHeight(8.h),
+          preferredSize: Size.fromHeight(16.h),
           child: Padding(
             padding: EdgeInsets.all(2.w),
-            child: TextField(
-              controller: _searchController,
-              onChanged: (val) => ref
-                  .read(characterListNotifierProvider.notifier)
-                  .onSearchChanged(val),
-              decoration: InputDecoration(
-                hintText: 'Search characters...',
-                prefixIcon: const Icon(Icons.search, color: Colors.white54),
-                suffixIcon: IconButton(
-                  icon: const Icon(Icons.clear, color: Colors.white54),
-                  onPressed: () {
-                    _searchController.clear();
-                    ref
-                        .read(characterListNotifierProvider.notifier)
-                        .onSearchChanged('');
-                  },
+            child: Column(
+              children: [
+                TextField(
+                  controller: _searchController,
+                  onChanged: (val) => ref
+                      .read(characterListNotifierProvider.notifier)
+                      .onSearchChanged(val),
+                  decoration: InputDecoration(
+                    hintText: 'Search characters...',
+                    prefixIcon: Icon(
+                      Icons.search,
+                      color: Theme.of(context).iconTheme.color,
+                    ),
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        Icons.clear,
+                        color: Theme.of(context).iconTheme.color,
+                      ),
+                      onPressed: () {
+                        _searchController.clear();
+                        ref
+                            .read(characterListNotifierProvider.notifier)
+                            .onSearchChanged('');
+                      },
+                    ),
+                  ),
                 ),
-              ),
-              style: const TextStyle(color: Colors.white),
+                SizedBox(height: 1.h),
+                Row(
+                  children: [
+                    Text(
+                      'Filter by status:',
+                      style: TextStyle(
+                        fontSize: 14.sp,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    SizedBox(width: 3.w),
+                    Expanded(
+                      child: InlineChoice<String>(
+                        clearable: true,
+                        multiple: false,
+                        value: ChoiceSingle.value(currentStatus),
+                        onChanged: ChoiceSingle.onChanged((val) {
+                          ref
+                              .read(characterListNotifierProvider.notifier)
+                              .onFilterChanged(
+                                status: val,
+                                species: currentSpecies,
+                              );
+                        }),
+                        itemCount: statusOptions.length,
+                        itemBuilder: (state, i) {
+                          return ChoiceChip(
+                            label: Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 1.w),
+                              child: Text(statusOptions[i]),
+                            ),
+                            selected: state.selected(statusOptions[i]),
+                            onSelected: state.onSelected(statusOptions[i]),
+                          );
+                        },
+                        listBuilder: ChoiceList.createScrollable(
+                          spacing: 3.w,
+                          padding: EdgeInsets.zero,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                Row(
+                  children: [
+                    Text(
+                      'Filter by species:',
+                      style: TextStyle(
+                        fontSize: 14.sp,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    SizedBox(width: 3.w),
+
+                    Expanded(
+                      child: InlineChoice<String>(
+                        clearable: true,
+                        multiple: false,
+                        value: ChoiceSingle.value(currentSpecies),
+                        onChanged: ChoiceSingle.onChanged((val) {
+                          ref
+                              .read(characterListNotifierProvider.notifier)
+                              .onFilterChanged(
+                                status: currentStatus,
+                                species: val,
+                              );
+                        }),
+                        itemCount: speciesOptions.length,
+                        itemBuilder: (state, i) {
+                          return ChoiceChip(
+                            label: Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 1.w),
+                              child: Text(
+                                speciesOptions[i],
+                                maxLines: 1,
+                                overflow: TextOverflow.visible,
+                              ),
+                            ),
+                            selected: state.selected(speciesOptions[i]),
+                            onSelected: state.onSelected(speciesOptions[i]),
+                          );
+                        },
+                        listBuilder: ChoiceList.createScrollable(
+                          spacing: 3.w,
+                          padding: EdgeInsets.zero,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
         ),
@@ -110,7 +227,9 @@ class _CharacterListScreenState extends ConsumerState<CharacterListScreen> {
                         'No characters found for "${state.query}"',
                         style: TextStyle(
                           fontSize: 14.sp,
-                          color: Colors.white70,
+                          color: themeMode == ThemeMode.dark
+                              ? Colors.white70
+                              : Colors.black54,
                         ),
                       ),
                     ),

@@ -6,6 +6,8 @@ abstract class CharacterRepository {
   Future<Result<PaginatedList<Character>>> getCharacters({
     int page = 1,
     String? name,
+    String? status,
+    String? species,
   });
 
   Future<Result<Character>> getCharacter(int id);

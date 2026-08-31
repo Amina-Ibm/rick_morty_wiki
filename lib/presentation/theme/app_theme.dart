@@ -46,4 +46,44 @@ class AppTheme {
       ),
     );
   }
+
+  static ThemeData get lightTheme {
+    return ThemeData(
+      scaffoldBackgroundColor: creamText,
+      primaryColor: primary,
+      colorScheme: const ColorScheme.light(
+        primary: primary,
+        secondary: secondary,
+        surface: creamText,
+        // ignore: deprecated_member_use
+        background: creamText,
+      ),
+      textTheme: GoogleFonts.montserratTextTheme(
+        ThemeData.light().textTheme,
+      ).apply(bodyColor: background, displayColor: background),
+      appBarTheme: AppBarTheme(
+        backgroundColor: creamText,
+        elevation: 0,
+        iconTheme: const IconThemeData(color: background),
+        titleTextStyle: GoogleFonts.montserrat(
+          color: background,
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+      cardTheme: CardThemeData(
+        color: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: secondary.withOpacity(0.1),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide.none,
+        ),
+        hintStyle: const TextStyle(color: Colors.black54),
+      ),
+    );
+  }
 }

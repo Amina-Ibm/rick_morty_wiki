@@ -65,3 +65,9 @@ Riverpod, as Bloc/cubit are used for complex apps where multiple states are requ
 - Claude: Create initial architecture, draft the episode bonus doc, review and polish the Readme.md
 - Antigravity: Create domain, data layers, and test widgets.
 
+## Screen Recording
+- Android: https://drive.google.com/file/d/15tmORTz4e_kTjuRseQbgZfAsfJq5YJ5O/view?usp=sharing
+- iOS: https://github.com/user-attachments/assets/16c80f50-4e3d-4662-96dc-a1f1631f44db
+
+
+

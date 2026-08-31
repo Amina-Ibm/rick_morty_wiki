@@ -5,6 +5,7 @@ import 'package:sizer/sizer.dart';
 import '../../domain/models/character.dart';
 import '../favourites/favourites_notifier.dart';
 import '../theme/app_theme.dart';
+import '../theme/theme_provider.dart';
 
 class CharacterDetailScreen extends ConsumerWidget {
   final Character character;
@@ -16,6 +17,7 @@ class CharacterDetailScreen extends ConsumerWidget {
     final isFav =
         ref.watch(favouritesNotifierProvider).value?.contains(character.id) ??
         false;
+    final themeMode = ref.watch(themeProvider);
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -64,7 +66,9 @@ class CharacterDetailScreen extends ConsumerWidget {
                     style: TextStyle(
                       fontSize: 24.sp,
                       fontWeight: FontWeight.bold,
-                      color: AppTheme.creamText,
+                      color: themeMode == ThemeMode.dark
+                          ? AppTheme.creamText
+                          : Colors.black,
                     ),
                   ),
                   SizedBox(height: 1.h),
@@ -87,7 +91,9 @@ class CharacterDetailScreen extends ConsumerWidget {
                         '${character.status.name.toUpperCase()} - ${character.species}',
                         style: TextStyle(
                           fontSize: 14.sp,
-                          color: Colors.white70,
+                          color: themeMode == ThemeMode.dark
+                              ? Colors.white70
+                              : Colors.black54,
                         ),
                       ),
                     ],
@@ -98,13 +104,20 @@ class CharacterDetailScreen extends ConsumerWidget {
                     style: TextStyle(
                       fontSize: 16.sp,
                       fontWeight: FontWeight.bold,
-                      color: AppTheme.creamText,
+                      color: themeMode == ThemeMode.dark
+                          ? AppTheme.creamText
+                          : Colors.black,
                     ),
                   ),
                   SizedBox(height: 1.h),
                   Text(
                     character.location,
-                    style: TextStyle(fontSize: 14.sp, color: Colors.white70),
+                    style: TextStyle(
+                      fontSize: 14.sp,
+                      color: themeMode == ThemeMode.dark
+                          ? Colors.white70
+                          : Colors.black54,
+                    ),
                   ),
                   SizedBox(height: 3.h),
                   Text(
@@ -112,13 +125,20 @@ class CharacterDetailScreen extends ConsumerWidget {
                     style: TextStyle(
                       fontSize: 16.sp,
                       fontWeight: FontWeight.bold,
-                      color: AppTheme.creamText,
+                      color: themeMode == ThemeMode.dark
+                          ? AppTheme.creamText
+                          : Colors.black,
                     ),
                   ),
                   SizedBox(height: 1.h),
                   Text(
                     character.origin.name,
-                    style: TextStyle(fontSize: 14.sp, color: Colors.white70),
+                    style: TextStyle(
+                      fontSize: 14.sp,
+                      color: themeMode == ThemeMode.dark
+                          ? Colors.white70
+                          : Colors.black54,
+                    ),
                   ),
                   SizedBox(height: 3.h),
                   Text(
@@ -126,13 +146,20 @@ class CharacterDetailScreen extends ConsumerWidget {
                     style: TextStyle(
                       fontSize: 16.sp,
                       fontWeight: FontWeight.bold,
-                      color: AppTheme.creamText,
+                      color: themeMode == ThemeMode.dark
+                          ? AppTheme.creamText
+                          : Colors.black,
                     ),
                   ),
                   SizedBox(height: 1.h),
                   Text(
                     character.origin.url,
-                    style: TextStyle(fontSize: 14.sp, color: Colors.white70),
+                    style: TextStyle(
+                      fontSize: 14.sp,
+                      color: themeMode == ThemeMode.dark
+                          ? Colors.white70
+                          : Colors.black54,
+                    ),
                   ),
                 ],
               ),

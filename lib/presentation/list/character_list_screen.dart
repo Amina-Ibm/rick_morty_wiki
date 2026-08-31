@@ -66,7 +66,7 @@ class _CharacterListScreenState extends ConsumerState<CharacterListScreen> {
           ),
         ],
         bottom: PreferredSize(
-          preferredSize: Size.fromHeight(16.h),
+          preferredSize: Size.fromHeight(20.h),
           child: Padding(
             padding: EdgeInsets.all(2.w),
             child: Column(
@@ -77,7 +77,7 @@ class _CharacterListScreenState extends ConsumerState<CharacterListScreen> {
                       .read(characterListNotifierProvider.notifier)
                       .onSearchChanged(val),
                   decoration: InputDecoration(
-                    hintText: 'Search characters...',
+                    hintText: 'Search characters',
                     prefixIcon: Icon(
                       Icons.search,
                       color: Theme.of(context).iconTheme.color,
@@ -125,7 +125,11 @@ class _CharacterListScreenState extends ConsumerState<CharacterListScreen> {
                           return ChoiceChip(
                             label: Padding(
                               padding: EdgeInsets.symmetric(horizontal: 1.w),
-                              child: Text(statusOptions[i]),
+                              child: Text(
+                                statusOptions[i],
+                                maxLines: 1,
+                                overflow: TextOverflow.visible,
+                              ),
                             ),
                             selected: state.selected(statusOptions[i]),
                             onSelected: state.onSelected(statusOptions[i]),

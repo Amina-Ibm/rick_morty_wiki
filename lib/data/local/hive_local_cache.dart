@@ -42,6 +42,14 @@ class HiveLocalCache implements LocalCache {
     if (data != null) {
       return jsonDecode(data) as Map<String, dynamic>;
     }
+    
+    // Fallback: search in cached pages if not found directly
+    final allChars = await getAllCachedCharacters();
+    for (final char in allChars) {
+      if (char['id'] == id) {
+        return char;
+      }
+    }
     return null;
   }
 

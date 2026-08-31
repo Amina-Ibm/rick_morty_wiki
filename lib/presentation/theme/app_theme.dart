@@ -37,7 +37,7 @@ class AppTheme {
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: secondary.withOpacity(0.3),
+        fillColor: secondary.withValues(alpha: 0.1).withAlpha(100),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
           borderSide: BorderSide.none,
@@ -77,7 +77,7 @@ class AppTheme {
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: secondary.withOpacity(0.1),
+        fillColor: secondary.withValues(alpha: 0.1).withAlpha(100),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
           borderSide: BorderSide.none,

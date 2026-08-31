@@ -1,4 +1,3 @@
-import '../../domain/failures/app_failure.dart';
 import '../../domain/models/character.dart';
 
 class CharacterListState {

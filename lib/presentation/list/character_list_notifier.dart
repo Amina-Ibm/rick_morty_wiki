@@ -80,9 +80,6 @@ class CharacterListNotifier extends AsyncNotifier<CharacterListState> {
       status: _currentStatus,
       species: _currentSpecies,
     );
-    if (result case Failure(:final error)) {
-      print('REAL ERROR: $error');
-    }
 
     if (result is Success<PaginatedList<Character>>) {
       final data = result.data;
@@ -120,8 +117,9 @@ class CharacterListNotifier extends AsyncNotifier<CharacterListState> {
             if (currentFetchId == _fetchId) state = AsyncData(newState);
           })
           .catchError((error, stackTrace) {
-            if (currentFetchId == _fetchId)
+            if (currentFetchId == _fetchId) {
               state = AsyncError(error, stackTrace);
+            }
           });
     });
   }

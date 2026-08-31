@@ -1,30 +1,100 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-
+import 'package:mocktail/mocktail.dart';
+import 'package:hive/hive.dart';
+import 'package:rick_morty_wiki/core/di/providers.dart';
+import 'package:rick_morty_wiki/core/utils/result.dart';
+import 'package:rick_morty_wiki/domain/models/character.dart';
+import 'package:rick_morty_wiki/domain/models/origin.dart';
+import 'package:rick_morty_wiki/domain/models/paginated_list.dart';
+import 'package:rick_morty_wiki/domain/repositories/character_repository.dart';
 import 'package:rick_morty_wiki/main.dart';
+import 'package:rick_morty_wiki/presentation/widgets/character_card.dart';
+
+class MockCharacterRepository extends Mock implements CharacterRepository {}
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  late MockCharacterRepository mockRepo;
+  late String tempPath;
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+  setUp(() async {
+    tempPath = Directory.systemTemp.createTempSync().path;
+    Hive.init(tempPath);
+    await Hive.openBox('themeBox');
+    await Hive.openBox('favouritesBox');
+    
+    mockRepo = MockCharacterRepository();
+  });
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+  tearDown(() async {
+    await Hive.close();
+    try {
+      Directory(tempPath).deleteSync(recursive: true);
+    } catch (_) {}
+  });
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+  testWidgets('List screen renders characters and interacts', (
+    WidgetTester tester,
+  ) async {
+    tester.view.physicalSize = const Size(1080, 2400);
+    tester.view.devicePixelRatio = 3.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    final characters = [
+      Character(
+        id: 1,
+        name: 'Rick Sanchez',
+        status: CharacterStatus.alive,
+        species: 'Human',
+        imageUrl: 'url1',
+        gender: 'Male',
+        origin: Origin(name: 'Earth', url: 'url'),
+        location: 'Earth',
+      ),
+      Character(
+        id: 2,
+        name: 'Morty Smith',
+        status: CharacterStatus.alive,
+        species: 'Human',
+        imageUrl: 'url2',
+        gender: 'Male',
+        origin: Origin(name: 'Earth', url: 'url'),
+        location: 'Earth',
+      ),
+    ];
+
+    when(
+      () => mockRepo.getCharacters(
+        page: any(named: 'page'),
+        name: any(named: 'name'),
+        status: any(named: 'status'),
+        species: any(named: 'species'),
+      ),
+    ).thenAnswer(
+      (_) async => Success(
+        PaginatedList(items: characters, hasMore: false, isFromCache: false),
+      ),
+    );
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [characterRepositoryProvider.overrideWithValue(mockRepo)],
+        child: const MyApp(),
+      ),
+    );
+
+    // Initial loading state
+    expect(find.byType(CircularProgressIndicator), findsWidgets);
+
+    // Wait for the async requests to finish
+    await tester.pumpAndSettle();
+
+    // The list should now be rendered
+    expect(find.text('Rick Sanchez'), findsOneWidget);
+    expect(find.text('Morty Smith'), findsOneWidget);
+    expect(find.byType(CharacterCard), findsNWidgets(2));
   });
 }

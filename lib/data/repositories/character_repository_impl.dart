@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+
 import '../../core/utils/result.dart';
 import '../../domain/failures/app_failure.dart';
 import '../../domain/models/character.dart';
@@ -11,20 +12,27 @@ import '../remote/dtos/paginated_response_dto.dart';
 class CharacterRepositoryImpl implements CharacterRepository {
   final Dio _apiClient;
   final LocalCache _cache;
-  
-  CharacterRepositoryImpl({required Dio apiClient, required LocalCache cache}) 
-      : _apiClient = apiClient, _cache = cache;
+
+  CharacterRepositoryImpl({required Dio apiClient, required LocalCache cache})
+    : _apiClient = apiClient,
+      _cache = cache;
 
   bool _isNetworkError(DioException e) {
     return e.type == DioExceptionType.connectionTimeout ||
-           e.type == DioExceptionType.receiveTimeout ||
-           e.type == DioExceptionType.sendTimeout ||
-           e.type == DioExceptionType.connectionError ||
-           e.type == DioExceptionType.unknown; // Sometimes socket exceptions fall here
+        e.type == DioExceptionType.receiveTimeout ||
+        e.type == DioExceptionType.sendTimeout ||
+        e.type == DioExceptionType.connectionError ||
+        e.type ==
+            DioExceptionType.unknown; // Sometimes socket exceptions fall here
   }
 
   @override
-  Future<Result<PaginatedList<Character>>> getCharacters({int page = 1, String? name, String? status, String? species}) async {
+  Future<Result<PaginatedList<Character>>> getCharacters({
+    int page = 1,
+    String? name,
+    String? status,
+    String? species,
+  }) async {
     try {
       final queryParams = <String, dynamic>{'page': page};
       if (name != null && name.isNotEmpty) {
@@ -37,14 +45,17 @@ class CharacterRepositoryImpl implements CharacterRepository {
         queryParams['species'] = species;
       }
 
-      final response = await _apiClient.get('/character', queryParameters: queryParams);
-      
+      final response = await _apiClient.get(
+        '/character',
+        queryParameters: queryParams,
+      );
+
       final data = response.data as Map<String, dynamic>;
       final dto = PaginatedResponseDto<CharacterDto>.fromJson(
-        data, 
-        (json) => CharacterDto.fromJson(json)
+        data,
+        (json) => CharacterDto.fromJson(json),
       );
-      
+
       final characters = dto.results.map((c) => Character.fromDto(c)).toList();
       final hasMore = dto.next != null;
 
@@ -54,17 +65,20 @@ class CharacterRepositoryImpl implements CharacterRepository {
       data['_cached_at'] = DateTime.now().toIso8601String();
       await _cache.saveCharactersPage(page, cacheQuery, data);
 
-      return Success(PaginatedList<Character>(
-        items: characters, 
-        hasMore: hasMore,
-        isFromCache: false,
-      ));
-
+      return Success(
+        PaginatedList<Character>(
+          items: characters,
+          hasMore: hasMore,
+          isFromCache: false,
+        ),
+      );
     } on DioException catch (e) {
       if (e.response?.statusCode == 404) {
-        // API returns 404 when search yields zero results. 
+        // API returns 404 when search yields zero results.
         // We catch this and return an empty list instead of a failure.
-        return const Success(PaginatedList<Character>(items: [], hasMore: false));
+        return const Success(
+          PaginatedList<Character>(items: [], hasMore: false),
+        );
       }
 
       final cacheQuery = '${name ?? ''}_${status ?? ''}_${species ?? ''}';
@@ -75,50 +89,65 @@ class CharacterRepositoryImpl implements CharacterRepository {
           final cachedData = await _cache.getCharactersPage(page, cacheQuery);
           if (cachedData != null) {
             final dto = PaginatedResponseDto<CharacterDto>.fromJson(
-              cachedData, 
-              (json) => CharacterDto.fromJson(json)
+              cachedData,
+              (json) => CharacterDto.fromJson(json),
             );
-            final characters = dto.results.map((c) => Character.fromDto(c)).toList();
-            
+            final characters = dto.results
+                .map((c) => Character.fromDto(c))
+                .toList();
+
             DateTime? cachedAt;
             if (cachedData['_cached_at'] != null) {
               cachedAt = DateTime.tryParse(cachedData['_cached_at'] as String);
             }
 
-            return Success(PaginatedList<Character>(
-              items: characters, 
-              hasMore: dto.next != null,
-              isFromCache: true, // Flag as cached data
-              cachedAt: cachedAt,
-            ));
+            return Success(
+              PaginatedList<Character>(
+                items: characters,
+                hasMore: dto.next != null,
+                isFromCache: true, // Flag as cached data
+                cachedAt: cachedAt,
+              ),
+            );
           } else if (name != null && name.isNotEmpty) {
             final allCharsData = await _cache.getAllCachedCharacters();
-            final matchedChars = allCharsData.where((c) {
-              final charName = (c['name'] as String?)?.toLowerCase() ?? '';
-              return charName.contains(name.toLowerCase());
-            }).map((c) => Character.fromDto(CharacterDto.fromJson(c))).toList();
+            final matchedChars = allCharsData
+                .where((c) {
+                  final charName = (c['name'] as String?)?.toLowerCase() ?? '';
+                  return charName.contains(name.toLowerCase());
+                })
+                .map((c) => Character.fromDto(CharacterDto.fromJson(c)))
+                .toList();
 
             if (page == 1) {
-              return Success(PaginatedList<Character>(
-                items: matchedChars,
-                hasMore: false,
-                isFromCache: true,
-              ));
+              return Success(
+                PaginatedList<Character>(
+                  items: matchedChars,
+                  hasMore: false,
+                  isFromCache: true,
+                ),
+              );
             } else {
-              return const Success(PaginatedList<Character>(items: [], hasMore: false, isFromCache: true));
+              return const Success(
+                PaginatedList<Character>(
+                  items: [],
+                  hasMore: false,
+                  isFromCache: true,
+                ),
+              );
             }
           }
         } catch (cacheError) {
-          print('Cache error: $cacheError');
+          //print('Cache error: $cacheError');
           return const Failure(ParseFailure('Failed to parse cached data'));
         }
         return const Failure(NetworkFailure());
       }
-      print('Server error: ${e.response?.statusCode} ${e.message}');
+      //print('Server error: ${e.response?.statusCode} ${e.message}');
       return Failure(ServerFailure(e.message ?? 'Server error'));
-    } catch (e, stacktrace) {
-      print('Unknown error: $e');
-      print(stacktrace);
+    } catch (e) {
+      //print('Unknown error: $e');
+      //print(stacktrace);
       return const Failure(ParseFailure());
     }
   }
@@ -128,7 +157,7 @@ class CharacterRepositoryImpl implements CharacterRepository {
     try {
       final response = await _apiClient.get('/character/$id');
       final data = response.data as Map<String, dynamic>;
-      
+
       final dto = CharacterDto.fromJson(data);
       final character = Character.fromDto(dto);
 
@@ -140,8 +169,8 @@ class CharacterRepositoryImpl implements CharacterRepository {
         try {
           final cachedData = await _cache.getCharacter(id);
           if (cachedData != null) {
-             final dto = CharacterDto.fromJson(cachedData);
-             return Success(Character.fromDto(dto));
+            final dto = CharacterDto.fromJson(cachedData);
+            return Success(Character.fromDto(dto));
           }
         } catch (_) {}
         return const Failure(NetworkFailure());

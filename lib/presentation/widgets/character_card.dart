@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sizer/sizer.dart';
 
 import '../../domain/models/character.dart';
 import '../theme/app_theme.dart';
+import '../theme/theme_provider.dart';
 
-class CharacterCard extends StatelessWidget {
+class CharacterCard extends ConsumerWidget {
   final Character character;
   final VoidCallback onTap;
   final bool isFavourite;
@@ -19,7 +21,8 @@ class CharacterCard extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final themeMode = ref.watch(themeProvider);
     return Card(
       margin: EdgeInsets.symmetric(horizontal: 4.w, vertical: 1.h),
       elevation: 4,
@@ -55,7 +58,9 @@ class CharacterCard extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 14.sp,
                         fontWeight: FontWeight.bold,
-                        color: AppTheme.creamText,
+                        color: themeMode == ThemeMode.dark
+                            ? AppTheme.creamText
+                            : Colors.black,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -63,12 +68,22 @@ class CharacterCard extends StatelessWidget {
                     SizedBox(height: 0.5.h),
                     Text(
                       '${character.species} - ${character.status.name}',
-                      style: TextStyle(fontSize: 12.sp, color: Colors.white70),
+                      style: TextStyle(
+                        fontSize: 12.sp,
+                        color: themeMode == ThemeMode.dark
+                            ? Colors.white70
+                            : Colors.black54,
+                      ),
                     ),
                     SizedBox(height: 0.5.h),
                     Text(
                       character.gender,
-                      style: TextStyle(fontSize: 12.sp, color: Colors.white70),
+                      style: TextStyle(
+                        fontSize: 12.sp,
+                        color: themeMode == ThemeMode.dark
+                            ? Colors.white70
+                            : Colors.black54,
+                      ),
                     ),
                   ],
                 ),
